@@ -1,6 +1,11 @@
+// ignore_for_file: avoid_print
+
+import 'dart:developer';
+
 import 'package:ecofarms/Login.dart';
 import 'package:ecofarms/OTP.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -16,7 +21,7 @@ class ForgotPassword extends StatefulWidget {
 class _ForgotPasswordState extends State<ForgotPassword> {
   GlobalKey<FormState> forgotpaswordkey = GlobalKey<FormState>();
   final mobilecontroller = TextEditingController();
-
+  bool buttonenabled = false;
   @override
   void initState() {
     // TODO: implement initState
@@ -25,6 +30,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   @override
   Widget build(BuildContext context) {
+    String mobile;
     return SafeArea(
         child: Scaffold(
       body: SingleChildScrollView(
@@ -93,10 +99,12 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             Container(
               width: MediaQuery.of(context).copyWith().size.width * 0.9,
               child: Form(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   key: forgotpaswordkey,
                   child: Column(
                     children: <Widget>[
                       TextFormField(
+                        inputFormatters: [LengthLimitingTextInputFormatter(10)],
                         controller: mobilecontroller,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
@@ -126,34 +134,41 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               ),
               child: Column(
                 children: [
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HexColor("01937C"),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 100, vertical: 15),
-                        elevation: 20,
-                      ),
-                      onPressed: () async {
-                        if (forgotpaswordkey.currentState!.validate()) {
-                          String mobile = mobilecontroller.text;
-                          final prefs = await SharedPreferences.getInstance();
-                          prefs.setString("OTPM", mobile);
-                          Future.delayed(Duration(seconds: 5)).then((value) =>
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => OTP())));
-
-                          //login(email,password);
-                        }
-                      },
-                      child: const Text(
-                        "Request OTP",
-                        style: TextStyle(
-                          fontFamily: 'Lexend',
-                          fontSize: 18,
-                        ),
-                      )),
+                  buttonenabled == true
+                      ? CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(
+                              Theme.of(context).primaryColor),
+                        )
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HexColor("01937C"),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 100, vertical: 15),
+                            elevation: 20,
+                          ),
+                          onPressed: () => {
+                                if (forgotpaswordkey.currentState!.validate())
+                                  {
+                                    mobile = mobilecontroller.text,
+                                    setState(() {
+                                      buttonenabled = true;
+                                    }),
+                                    //login(email,password);
+                                  }
+                                //  buttonenabled = true
+                                // print(buttonenabled),
+                                // setState(() {
+                                //   buttonenabled = true;
+                                // }),
+                                // print(buttonenabled),
+                              },
+                          child: const Text(
+                            "Request OTP",
+                            style: TextStyle(
+                              fontFamily: 'Lexend',
+                              fontSize: 18,
+                            ),
+                          )),
                 ],
               ),
             ),
@@ -162,4 +177,16 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       ),
     ));
   }
+
+// bool btnEnable {
+//     if (forgotpaswordkey.currentState!.validate()) {
+//       String mobile = mobilecontroller.text;
+//       buttonenabled = true;
+//       //login(email,password);
+//     } else {
+//       buttonenabled = false;
+//     }
+
+//     return buttonenabled;
+//   }
 }

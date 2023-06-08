@@ -1,9 +1,10 @@
 import 'package:ecofarms/ForgotPassword.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'Login.dart';
 
 class OTP extends StatefulWidget {
@@ -118,10 +119,12 @@ class _OTPState extends State<OTP> {
             Container(
               width: MediaQuery.of(context).copyWith().size.width * 0.9,
               child: Form(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   key: forgotpaswordkey,
                   child: Column(
                     children: <Widget>[
                       TextFormField(
+                        inputFormatters: [LengthLimitingTextInputFormatter(6)],
                         controller: mobilecontroller,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
@@ -141,6 +144,14 @@ class _OTPState extends State<OTP> {
                     ],
                   )),
             ),
+            /* OtpTextField(
+              mainAxisAlignment: MainAxisAlignment.center,
+              numberOfFields: 6,
+              fillColor: Colors.black.withOpacity(0.1),
+              filled: true,
+              keyboardType: TextInputType.number,
+              onSubmit: (value) {},
+            ),*/
             const SizedBox(
               height: 10,
             ),

@@ -1,100 +1,35 @@
-// ignore_for_file: sized_box_for_whitespace, avoid_unnecessary_containers
-
-import 'dart:io';
-
-import 'package:ecofarms/Register.dart';
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
-import 'package:form_field_validator/form_field_validator.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'Dashboard.dart';
-import 'ForgotPassword.dart';
 import 'package:flutter/services.dart';
+import 'package:form_field_validator/form_field_validator.dart';
+import 'package:hexcolor/hexcolor.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+import 'Login.dart';
+
+class Register extends StatefulWidget {
+  const Register({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<Register> createState() => _RegisterState();
 }
 
-class _LoginState extends State<Login> {
+class _RegisterState extends State<Register> {
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  final namecontroller = TextEditingController();
   final mobilecontroller = TextEditingController();
+  final emailcontroller = TextEditingController();
   final passwordcontrol = TextEditingController();
   bool buttonenabled = false;
-  login(String mobile, String password) async {
-    const base_url = 'http://192.168.43.160:3000/api';
-    try {
-      const base_url = 'http://192.168.43.160:3000/api';
-      Map<String, String> JsonBody = {'mobile': mobile, 'password': password};
-
-      var res = await http.post(
-        Uri.parse("$base_url/login"),
-        body: jsonEncode(JsonBody),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
-
-      var jsonResponse = jsonDecode(res.body);
-
-      if (res.statusCode == 200) {
-        messageBar(color: HexColor("01937C"), msg: "Successfully Login");
-
-        setState(() {
-          buttonenabled = false;
-        });
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return Dashboard();
-        }));
-      } else if (res.statusCode == 400) {
-        setState(() {
-          buttonenabled = false;
-        });
-        messageBar(color: HexColor("B70404"), msg: jsonResponse["msg"]);
-      } else if (res.statusCode == 404) {
-        setState(() {
-          buttonenabled = false;
-        });
-        print(res.body);
-      }
-    } on HttpException {
-      setState(() {
-        buttonenabled = false;
-      });
-      messageBar(color: HexColor("B70404"), msg: "Serever Error");
-    } on SocketException {
-      setState(() {
-        buttonenabled = false;
-      });
-      messageBar(color: HexColor("B70404"), msg: "No Internet");
-    }
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-            body: SingleChildScrollView(
-                child: Column(children: [
-      Container(
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(
-              height: 80,
-            ),
             Center(
               child: Image.asset(
                 'assets/images/logo.png',
-                height: 180,
+                height: MediaQuery.of(context).copyWith().size.height * 0.2,
               ),
             ),
             Center(
@@ -113,8 +48,19 @@ class _LoginState extends State<Login> {
                       fontFamily: 'Lexend',
                       color: HexColor("01937C"))),
             ]))),
-            const SizedBox(
-              height: 20,
+            Container(
+              height: MediaQuery.of(context).copyWith().size.height * 0.1,
+              child: Center(
+                child: Text(
+                  "Register your Account",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Lexend',
+                    fontSize: 24,
+                    color: HexColor("344D67"),
+                  ),
+                ),
+              ),
             ),
             Container(
               width: MediaQuery.of(context).copyWith().size.width * 0.9,
@@ -123,6 +69,37 @@ class _LoginState extends State<Login> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     children: <Widget>[
+                      TextFormField(
+                        controller: mobilecontroller,
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 3.0, horizontal: 10.0),
+                          border: OutlineInputBorder(),
+                          labelText: "Name",
+                        ),
+                        validator: MultiValidator([
+                          RequiredValidator(errorText: "* Name is Required"),
+                        ]),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      TextFormField(
+                        controller: emailcontroller,
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 3.0, horizontal: 10.0),
+                          border: OutlineInputBorder(),
+                          labelText: "Email",
+                        ),
+                        validator: MultiValidator([
+                          RequiredValidator(errorText: "* Email is Required"),
+                          EmailValidator(errorText: "Invalid Email Id")
+                        ]),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
                       TextFormField(
                         inputFormatters: [LengthLimitingTextInputFormatter(10)],
                         controller: mobilecontroller,
@@ -192,41 +169,17 @@ class _LoginState extends State<Login> {
                               setState(() {
                                 buttonenabled = true;
                               });
-                              login(mobile, password);
+                              //   login(mobile, password);
                             }
                           },
                           child: const Text(
-                            "Login",
+                            "Register",
                             style: TextStyle(
                                 fontFamily: 'Lexend',
                                 fontSize: 18,
                                 wordSpacing: 15),
-                          ))
+                          )),
                 ],
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Container(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ForgotPassword()));
-                },
-                // ignore: sort_child_properties_last
-                child: Text(
-                  "Forgot Password",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: 'Lexend',
-                      color: HexColor("01937C")),
-                ),
-                style: ButtonStyle(
-                    overlayColor:
-                        MaterialStateProperty.all(Colors.transparent)),
               ),
             ),
             Container(
@@ -234,20 +187,20 @@ class _LoginState extends State<Login> {
               child: TextButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return Register();
+                    return Login();
                   }));
                 },
                 // ignore: sort_child_properties_last
                 child: RichText(
                     text: TextSpan(children: <TextSpan>[
                   TextSpan(
-                      text: "Don't have an account ?",
+                      text: "Have an account ?",
                       style: TextStyle(
                           fontSize: 15,
                           fontFamily: 'Lexend',
                           color: HexColor("9196A5"))),
                   TextSpan(
-                      text: " Register",
+                      text: " Login",
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: 'Lexend',
@@ -261,26 +214,7 @@ class _LoginState extends State<Login> {
             )
           ],
         ),
-      )
-    ]))));
+      ),
+    ));
   }
-
-  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> messageBar(
-          {required String msg, required Color color}) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: Container(
-          padding: EdgeInsets.all(16),
-          height: 55,
-          decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.all(Radius.circular(10))),
-          child: Text(
-            msg,
-            style: TextStyle(fontFamily: 'Lexend', fontSize: 15),
-          ),
-        ),
-      ));
 }
