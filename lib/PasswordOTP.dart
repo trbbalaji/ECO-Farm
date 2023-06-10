@@ -1,4 +1,4 @@
-import 'package:ecofarms/ForgotPassword.dart';
+import 'package:ecofarms/ChangesPassword.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -11,14 +11,14 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class OTP extends StatefulWidget {
-  const OTP({super.key});
+class PasswordOTP extends StatefulWidget {
+  const PasswordOTP({super.key});
 
   @override
-  State<OTP> createState() => _OTPState();
+  State<PasswordOTP> createState() => _PasswordOTPState();
 }
 
-class _OTPState extends State<OTP> {
+class _PasswordOTPState extends State<PasswordOTP> {
   GlobalKey<FormState> forgotpaswordkey = GlobalKey<FormState>();
   final otpcontroller = TextEditingController();
   String mobileNO = "";
@@ -63,13 +63,14 @@ class _OTPState extends State<OTP> {
         });
 
         Future.delayed(Duration(seconds: 1)).then((value) => Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Login())));
+            context,
+            MaterialPageRoute(builder: (context) => ChangesPassword())));
 
         setState(() {
           buttonenabled = false;
         });
-        messageBar(color: HexColor("01937C"), msg: "Please Login your Account");
-        prefs.remove("OTPM");
+        // messageBar(color: HexColor("01937C"), msg: "Please Login your Account");
+        // prefs.remove("OTPM");
       } else if (res.statusCode == 400) {
         setState(() {
           buttonenabled = false;
@@ -102,7 +103,7 @@ class _OTPState extends State<OTP> {
         child: Column(
           children: [
             const SizedBox(
-              height: 20,
+              height: 55,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -110,7 +111,7 @@ class _OTPState extends State<OTP> {
                 SizedBox(
                   width: 15,
                 ),
-                IconButton(
+                /*IconButton(
                     onPressed: () {
                       Navigator.push(
                           context,
@@ -121,7 +122,7 @@ class _OTPState extends State<OTP> {
                       Icons.arrow_back,
                       size: 32,
                       color: HexColor("9196A5"),
-                    )),
+                    )),*/
               ],
             ),
             Container(
@@ -217,9 +218,9 @@ class _OTPState extends State<OTP> {
               onSubmit: (value) {},
             ),*/
             const SizedBox(
-              height: 10,
+              height: 30,
             ),
-            Container(
+            /* Container(
               child: TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -239,7 +240,7 @@ class _OTPState extends State<OTP> {
                     overlayColor:
                         MaterialStateProperty.all(Colors.transparent)),
               ),
-            ),
+            ),*/
             Container(
               width: MediaQuery.of(context).copyWith().size.width * 2,
               decoration: BoxDecoration(

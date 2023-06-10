@@ -1,9 +1,13 @@
+import 'Login.dart';
+import 'package:ecofarms/OTP.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:hexcolor/hexcolor.dart';
-
-import 'Login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -19,6 +23,66 @@ class _RegisterState extends State<Register> {
   final emailcontroller = TextEditingController();
   final passwordcontrol = TextEditingController();
   bool buttonenabled = false;
+
+  register(String name, String email, String mobile, String password) async {
+    try {
+      const base_url = 'http://192.168.43.160:3000/api';
+      Map<String, String> JsonBody = {
+        'name': name,
+        'email': email,
+        'mobile': mobile,
+        'password': password
+      };
+
+      var res = await http.post(
+        Uri.parse("$base_url/register"),
+        body: jsonEncode(JsonBody),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      var jsonResponse = jsonDecode(res.body);
+      print(jsonResponse);
+      if (res.statusCode == 200) {
+        messageBar(color: HexColor("01937C"), msg: jsonResponse["msg"]);
+
+        setState(() {
+          buttonenabled = false;
+        });
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return OTP();
+        }));
+      } else if (res.statusCode == 400) {
+        setState(() {
+          buttonenabled = false;
+        });
+        messageBar(color: HexColor("B70404"), msg: jsonResponse["msg"]);
+      } else if (res.statusCode == 404) {
+        setState(() {
+          buttonenabled = false;
+        });
+        print(res.body);
+      }
+    } on HttpException {
+      setState(() {
+        buttonenabled = false;
+      });
+      messageBar(color: HexColor("B70404"), msg: "Serever Error");
+    } on SocketException {
+      setState(() {
+        buttonenabled = false;
+      });
+      messageBar(color: HexColor("B70404"), msg: "No Internet");
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -70,7 +134,7 @@ class _RegisterState extends State<Register> {
                   child: Column(
                     children: <Widget>[
                       TextFormField(
-                        controller: mobilecontroller,
+                        controller: namecontroller,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               vertical: 3.0, horizontal: 10.0),
@@ -162,14 +226,20 @@ class _RegisterState extends State<Register> {
                                 horizontal: 135, vertical: 15),
                             elevation: 20,
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             if (formkey.currentState!.validate()) {
+                              String name = namecontroller.text;
+                              String email = emailcontroller.text;
                               String mobile = mobilecontroller.text;
                               String password = passwordcontrol.text;
                               setState(() {
                                 buttonenabled = true;
                               });
-                              //   login(mobile, password);
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.setString("OTPM", mobile);
+
+                              register(name, email, mobile, password);
                             }
                           },
                           child: const Text(
@@ -217,4 +287,23 @@ class _RegisterState extends State<Register> {
       ),
     ));
   }
+
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> messageBar(
+          {required String msg, required Color color}) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Container(
+          padding: EdgeInsets.all(16),
+          height: 55,
+          decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: Text(
+            msg,
+            style: TextStyle(fontFamily: 'Lexend', fontSize: 15),
+          ),
+        ),
+      ));
 }

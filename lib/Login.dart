@@ -8,6 +8,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Dashboard.dart';
 import 'ForgotPassword.dart';
 import 'package:flutter/services.dart';
@@ -76,7 +77,13 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     // TODO: implement initState
+    otpMobileNo();
     super.initState();
+  }
+
+  void otpMobileNo() async {
+    final prefs = await SharedPreferences.getInstance();
+    print(prefs.getString("OTPM"));
   }
 
   @override

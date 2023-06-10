@@ -4,12 +4,17 @@ import 'dart:developer';
 
 import 'package:ecofarms/Login.dart';
 import 'package:ecofarms/OTP.dart';
+import 'package:ecofarms/PasswordOTP.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -26,6 +31,66 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   void initState() {
     // TODO: implement initState
     super.initState();
+  }
+
+  generateOTP(String mobile) async {
+    try {
+      const base_url = 'http://192.168.43.160:3000/api';
+      Map<String, String> JsonBody = {'mobile': mobile};
+
+      print(mobile);
+      var res = await http.post(
+        Uri.parse("$base_url/ForgetOTP"),
+        body: jsonEncode(JsonBody),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      var jsonResponse = jsonDecode(res.body);
+
+      if (res.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        final mobilekey = await SharedPreferences.getInstance();
+
+        prefs.setString("OTPM", mobile);
+
+        prefs.setString("mobilekey", "true");
+
+        messageBar(color: HexColor("01937C"), msg: jsonResponse["msg"]);
+
+        setState(() {
+          buttonenabled = true;
+        });
+
+        Future.delayed(Duration(seconds: 1)).then((value) => Navigator.push(
+            context, MaterialPageRoute(builder: (context) => PasswordOTP())));
+
+        setState(() {
+          buttonenabled = false;
+        });
+      } else if (res.statusCode == 400) {
+        setState(() {
+          buttonenabled = false;
+        });
+        messageBar(color: HexColor("B70404"), msg: jsonResponse["msg"]);
+      } else if (res.statusCode == 404) {
+        setState(() {
+          buttonenabled = false;
+        });
+        print(res.body);
+      }
+    } on HttpException {
+      setState(() {
+        buttonenabled = false;
+      });
+      messageBar(color: HexColor("B70404"), msg: "Serever Error");
+    } on SocketException {
+      setState(() {
+        buttonenabled = false;
+      });
+      messageBar(color: HexColor("B70404"), msg: "No Internet");
+    }
   }
 
   @override
@@ -146,22 +211,15 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 horizontal: 100, vertical: 15),
                             elevation: 20,
                           ),
-                          onPressed: () => {
-                                if (forgotpaswordkey.currentState!.validate())
-                                  {
-                                    mobile = mobilecontroller.text,
-                                    setState(() {
-                                      buttonenabled = true;
-                                    }),
-                                    //login(email,password);
-                                  }
-                                //  buttonenabled = true
-                                // print(buttonenabled),
-                                // setState(() {
-                                //   buttonenabled = true;
-                                // }),
-                                // print(buttonenabled),
-                              },
+                          onPressed: () {
+                            if (forgotpaswordkey.currentState!.validate()) {
+                              mobile = mobilecontroller.text;
+                              setState(() {
+                                buttonenabled = true;
+                              });
+                              generateOTP(mobile);
+                            }
+                          },
                           child: const Text(
                             "Request OTP",
                             style: TextStyle(
@@ -178,15 +236,22 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     ));
   }
 
-// bool btnEnable {
-//     if (forgotpaswordkey.currentState!.validate()) {
-//       String mobile = mobilecontroller.text;
-//       buttonenabled = true;
-//       //login(email,password);
-//     } else {
-//       buttonenabled = false;
-//     }
-
-//     return buttonenabled;
-//   }
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> messageBar(
+          {required String msg, required Color color}) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Container(
+          padding: EdgeInsets.all(16),
+          height: 55,
+          decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: Text(
+            msg,
+            style: TextStyle(fontFamily: 'Lexend', fontSize: 15),
+          ),
+        ),
+      ));
 }
