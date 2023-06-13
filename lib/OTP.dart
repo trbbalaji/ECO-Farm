@@ -33,7 +33,7 @@ class _OTPState extends State<OTP> {
   void otpMobileNo() async {
     final prefs = await SharedPreferences.getInstance();
     mobileNO = prefs.getString("OTPM")!;
-    print(mobileNO);
+    //print(mobileNO);
   }
 
   verifyOTP(String mobile, String otp) async {

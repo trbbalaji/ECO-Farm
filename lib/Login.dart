@@ -2,6 +2,8 @@
 
 import 'dart:io';
 
+import 'package:ecofarms/LocationMap.dart';
+import 'package:ecofarms/LocationPage.dart';
 import 'package:ecofarms/Register.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -44,11 +46,15 @@ class _LoginState extends State<Login> {
       if (res.statusCode == 200) {
         messageBar(color: HexColor("01937C"), msg: "Successfully Login");
 
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool('LoginStatus', true);
+        prefs.setString("userid", mobile);
+
         setState(() {
           buttonenabled = false;
         });
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return Dashboard();
+          return LocationPage();
         }));
       } else if (res.statusCode == 400) {
         setState(() {
@@ -77,13 +83,13 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     // TODO: implement initState
-    otpMobileNo();
+    //  otpMobileNo();
     super.initState();
   }
 
   void otpMobileNo() async {
     final prefs = await SharedPreferences.getInstance();
-    print(prefs.getString("OTPM"));
+    // print(prefs.getString("OTPM"));
   }
 
   @override
@@ -218,12 +224,10 @@ class _LoginState extends State<Login> {
             Container(
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ForgotPassword()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => LocationPage()));
                 },
-                // ignore: sort_child_properties_last
+                // ignore: sort_child_properties_last ForgotPassword()
                 child: Text(
                   "Forgot Password",
                   style: TextStyle(

@@ -1,3 +1,4 @@
+import 'package:ecofarms/Dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -25,16 +26,41 @@ class _LoadingState extends State<Loading> {
 
   void call() async {
     final res = await getSettings();
+    final res2 = await loginSettings();
+    print("1 $res");
+    print("2 $res2");
     Future.delayed(Duration(seconds: 5)).then((value) => Navigator.push(context,
         MaterialPageRoute(builder: (context) => res ? Login() : Onboarding())));
+    /*if (res == true && res2 == true) {
+      print("Hi");
+      Future.delayed(Duration(seconds: 5)).then((value) => Navigator.push(
+          context, MaterialPageRoute(builder: (context) => Dashboard())));
+    } else if (res == true && res2 == false) {
+      Future.delayed(Duration(seconds: 5)).then((value) => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => res ? Login() : Onboarding())));
+    } else {
+      Future.delayed(Duration(seconds: 5)).then((value) => Navigator.push(
+          context, MaterialPageRoute(builder: (context) => Onboarding())));
+    }*/
   }
 
   static Future getSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
     final showhome = prefs.getBool('showHome') ?? false;
+    final loginstatus = prefs.getBool('LoginStatus') ?? false;
     //print(showhome);
     return showhome;
+  }
+
+  static Future loginSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final loginstatus = prefs.getBool('LoginStatus') ?? false;
+    //print(showhome);
+    return loginstatus;
   }
 
   @override
