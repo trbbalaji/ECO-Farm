@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:ecofarms/LocationMap.dart';
 import 'package:ecofarms/LocationPage.dart';
 import 'package:ecofarms/Register.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Dashboard.dart';
 import 'ForgotPassword.dart';
 import 'package:flutter/services.dart';
+import 'User.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -27,6 +27,7 @@ class _LoginState extends State<Login> {
   final mobilecontroller = TextEditingController();
   final passwordcontrol = TextEditingController();
   bool buttonenabled = false;
+
   login(String mobile, String password) async {
     const base_url = 'http://192.168.43.160:3000/api';
     try {
@@ -44,18 +45,22 @@ class _LoginState extends State<Login> {
       var jsonResponse = jsonDecode(res.body);
 
       if (res.statusCode == 200) {
-        messageBar(color: HexColor("01937C"), msg: "Successfully Login");
-
+        //messageBar(color: HexColor("01937C"), msg: "Successfully Login");
+        var resforuser = await getData(mobile);
+        print("hir $resforuser");
         final prefs = await SharedPreferences.getInstance();
-        prefs.setBool('LoginStatus', true);
+
         prefs.setString("userid", mobile);
 
         setState(() {
           buttonenabled = false;
         });
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return LocationPage();
-        }));
+
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    resforuser ? Dashboard() : LocationPage()));
       } else if (res.statusCode == 400) {
         setState(() {
           buttonenabled = false;
@@ -85,6 +90,36 @@ class _LoginState extends State<Login> {
     // TODO: implement initState
     //  otpMobileNo();
     super.initState();
+  }
+
+  getData(mobile) async {
+    var status = false;
+    try {
+      const base_url = 'http://192.168.43.160:3000/api';
+      Map<String, String> JsonBody = {'mobile': mobile};
+
+      var res = await http.post(
+        Uri.parse("$base_url/user"),
+        body: jsonEncode(JsonBody),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+      // print(status);
+      var jsonResponse = jsonDecode(res.body);
+      if (res.statusCode == 200) {
+        //  print(jsonResponse["locationStatus"]);
+        //   return jsonResponse["locationStatus"];
+        status = jsonResponse["locationStatus"];
+
+        //    userdata.setPincode = jsonResponse["pincode"];
+      }
+    } on HttpException {
+      return "Serever Error";
+    }
+
+//    print(status);
+    return status;
   }
 
   void otpMobileNo() async {
@@ -224,8 +259,10 @@ class _LoginState extends State<Login> {
             Container(
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LocationPage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ForgotPassword()));
                 },
                 // ignore: sort_child_properties_last ForgotPassword()
                 child: Text(

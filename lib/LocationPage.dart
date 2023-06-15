@@ -1,9 +1,13 @@
+import 'package:ecofarms/Dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Login.dart';
+
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
 
 class LocationPage extends StatefulWidget {
   const LocationPage({super.key});
@@ -58,12 +62,68 @@ class _LocationPageState extends State<LocationPage> {
     setState(() {});
   }
 
-  locationProcesss(locationData) async {
+  locationProcesss(double lat, double lon) async {
+    print("Hi");
+    print("$lat $lon");
     final prefs = await SharedPreferences.getInstance();
+    var mobile = prefs.getString("userid");
     print(prefs.getString("userid"));
-    setState(() {
-      buttonenabled = false;
-    });
+    print(double.parse(mobile!));
+
+    try {
+      const base_url = 'http://192.168.43.160:3000/location';
+      // ignore: non_constant_identifier_names
+      Map<String, double> JsonBody = {
+        'mobile': double.parse(mobile!),
+        'lat': lat,
+        'lon': lon
+      };
+
+      var res = await http.post(
+        Uri.parse("$base_url/locationSave"),
+        body: jsonEncode(JsonBody),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      var jsonResponse = jsonDecode(res.body);
+      print(jsonResponse);
+      if (res.statusCode == 200) {
+        messageBar(color: HexColor("01937C"), msg: jsonResponse["msg"]);
+
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool('LocationStatus', true);
+        // prefs.setString("userid", mobile);
+        prefs.setBool('LoginStatus', true);
+        setState(() {
+          buttonenabled = false;
+        });
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return Dashboard();
+        }));
+      } else if (res.statusCode == 400) {
+        setState(() {
+          buttonenabled = false;
+        });
+        messageBar(color: HexColor("B70404"), msg: jsonResponse["msg"]);
+      } else if (res.statusCode == 404) {
+        setState(() {
+          buttonenabled = false;
+        });
+        print(res.body);
+      }
+    } on HttpException {
+      setState(() {
+        buttonenabled = false;
+      });
+      messageBar(color: HexColor("B70404"), msg: "Serever Error");
+    } on SocketException {
+      setState(() {
+        buttonenabled = false;
+      });
+      messageBar(color: HexColor("B70404"), msg: "No Internet");
+    }
   }
 
   @override
@@ -73,15 +133,8 @@ class _LocationPageState extends State<LocationPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              children: [
-                SizedBox(
-                  width: 15,
-                ),
-              ],
+            SizedBox(
+              height: MediaQuery.of(context).copyWith().size.height * 0.2,
             ),
             Container(
               height: MediaQuery.of(context).copyWith().size.height * 0.1,
@@ -143,9 +196,8 @@ class _LocationPageState extends State<LocationPage> {
                             elevation: 20,
                           ),
                           onPressed: () async {
-                            print("hhh");
-                            print(buttonenabled);
-
+                            double lat = 0;
+                            double lon = 0;
                             if (location == "Null") {
                               setState(() {
                                 buttonenabled = true;
@@ -155,18 +207,22 @@ class _LocationPageState extends State<LocationPage> {
 
                               location =
                                   "${position.latitude},${position.longitude}";
+
+                              lat = position.latitude;
+                              lon = position.longitude;
                             }
-                            print(location);
+
                             if (location != "Null") {
                               // setState(() {
                               //   buttonenabled = false;
                               // });
+                              //
+                              locationProcesss(lat, lon);
                               location = "Null";
-                              locationProcesss(location);
                             }
                           },
                           child: const Text(
-                            "Get Location",
+                            "Enable GPS",
                             style: TextStyle(
                               fontFamily: 'Lexend',
                               fontSize: 18,
@@ -180,4 +236,23 @@ class _LocationPageState extends State<LocationPage> {
       ),
     ));
   }
+
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> messageBar(
+          {required String msg, required Color color}) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Container(
+          padding: EdgeInsets.all(16),
+          height: 55,
+          decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: Text(
+            msg,
+            style: TextStyle(fontFamily: 'Lexend', fontSize: 15),
+          ),
+        ),
+      ));
 }
