@@ -47,7 +47,7 @@ class _DashboardState extends State<Dashboard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Image.asset(
-                      'assets/images/logo.png',
+                      'assets/images/user.png',
                       height: 50,
                     ),
                     /* Builder(

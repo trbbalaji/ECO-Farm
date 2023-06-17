@@ -1,7 +1,13 @@
 // ignore_for_file: prefer_final_fields, prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:ecofarms/Dashboard.dart';
+import 'package:ecofarms/DayWeather.dart';
+import 'package:ecofarms/Model/WeatherModel.dart';
+import 'package:ecofarms/TodayWeather.dart';
+import 'package:ecofarms/TomorrowWeather.dart';
+
 import 'package:ecofarms/UserInfo.dart';
+
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
@@ -19,56 +25,38 @@ class WeatherReport extends StatefulWidget {
 
 class _WeatherReportState extends State<WeatherReport> {
   UserInfo u = UserInfo();
-  String imgurl = "null";
-  @override
-  void initState() {
-    // TODO: implement initState
+  String weatherDsc = "null";
+  bool isLoading = false;
 
-    getdata();
-  }
+  bool btnenable = false;
 
   var city = null;
-  getdata() async {
-    final prefs = await SharedPreferences.getInstance();
-    var mobile = prefs.getString("userid");
-    var res = await u.getData(mobile);
-    city = res["city"];
-  }
+  var weatherBaseData;
 
 //int currYear = nowDate.year;
   int _selectedIndex = 0;
-
+  var cel;
   Tomorrow() {
     var tomorrow = DateTime.now().add(Duration(days: 1));
 
     return DateFormat.yMMMEd().format(tomorrow);
   }
 
-  WeatherData(day) async {
-    try {
-      const base_url = 'http://192.168.43.160:3000/location';
-      print(city);
-      Map<String, String> JsonBody = {"city": city, "day": day};
+  @override
+  void initState() {}
 
-      var res = await http.post(
-        Uri.parse("$base_url/weather"),
-        body: jsonEncode(JsonBody),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+  static const TextStyle optionStyle =
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
-      var jsonResponse = await jsonDecode(res.body);
-
-      if (res.statusCode == 200) {
-        imgurl = jsonResponse["imgurl"];
-
-        print("imgurl");
-        imgurl = imgurl.replaceAll('"', '');
-        print("2@ $imgurl");
-      } else if (res.statusCode == 400) {}
-    } catch (e) {}
-  }
+  //var _widgetOptions = [TodayWeather()];
+  List _widgetOptions = [
+    TodayWeather(),
+    TomorrowWeather(),
+    Text(
+      'Index 2: School',
+      style: optionStyle,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -143,9 +131,10 @@ class _WeatherReportState extends State<WeatherReport> {
                 ],
               )),
         ),
-        body: Container(
-          child: getPage(),
+        body: Center(
+          child: _widgetOptions.elementAt(_selectedIndex),
         ),
+        // body: Container(child: getPage(context)),
         resizeToAvoidBottomInset: true,
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: Colors.white,
@@ -176,42 +165,16 @@ class _WeatherReportState extends State<WeatherReport> {
     setState(() {
       _selectedIndex = index;
     });
-    print(_selectedIndex);
-    _selectedIndex == 0
-        ? WeatherData("today")
-        : (_selectedIndex == 1 ? WeatherData("tomorrow") : "");
-  }
-
-  Widget getPage() {
-    List<Widget> _widgetOptions = [
-      Container(
-          child: Column(
-        children: [
-          Row(
-            children: [],
-          )
-        ],
-      )),
-      Container(
-        alignment: Alignment.center,
-        child: Text(
-          "Users",
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-        ),
-      ),
-      Container(
-        alignment: Alignment.center,
-        child: Text(
-          "Messages",
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-        ),
-      ),
-    ];
-    return IndexedStack(
-      index: _selectedIndex,
-      children: _widgetOptions,
-    );
   }
 }
+/*
+*/
 
-//Widget WeatherLayer({required String date}) => Container();
+class WeatherInfo {
+  var temp_c;
+  var h;
+  var imgurl;
+  var wind;
+  var status;
+  WeatherInfo(this.temp_c, this.h, this.imgurl, this.wind, this.status);
+}
